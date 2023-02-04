@@ -5,27 +5,51 @@ import { useEffect, useState } from 'react';
 import { formatWeatherData } from './weatherService';
 
 function App() {
-
+  const[city, setCity] = useState('Lviv');
   const[weather, setWeather] =useState(null);
   const[units, setUnits]=useState('metric');
+  const[bg,setBg] = useState(Hot);
 
   useEffect(()=> {
     const fetchWeatherData = async ()=> {
-      const data = await formatWeatherData('paris', units);
+      const data = await formatWeatherData(city , units);
       setWeather(data);
+
+      const threshold = units === 'metric' ? 10 : 60;
+      if (threshold <= data.temp) {
+        setBg(Hot);
+      } 
+      else setBg(Cold);
     };
+
     fetchWeatherData();
-  }, [])
+  }, [units,city])
+
+  const handleUnitsClick = (e) => {
+    const button = e.currentTarget;
+    const currentUnit = button.innerText.slice(1);
+    const isCesius = currentUnit==='C';
+    button.innerText = isCesius ?  '°F' : '°C';
+    setUnits(isCesius ? 'metric' : 'imperial');
+  };
+
+  const enterCity = (e) => {
+    if (e.keyCode==13) {
+      setCity(e.currentTarget.value)
+      e.currentTarget.blur();
+    }
+  };
+  
 
   return (
-    <div className="app" style={{backgroundImage:`url(${Cold})`}}>
+    <div className="app" style={{backgroundImage:`url(${bg})`}}>
       <div className="overlay">
         {
           weather && (
             <div className="container">
               <div className="section section_inputs">
-                <input type="text" name="city" placeholder="Enter the City..."/>
-                <button>°F</button>
+                <input onKeyDown={enterCity} ontype="text" name="city" placeholder="Enter the City..."/>
+                <button onClick={(e)=> {handleUnitsClick(e)}}>°F</button>
               </div>
             <div className="section section_temperature">
               <div className="icon">
